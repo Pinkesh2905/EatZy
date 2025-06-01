@@ -7,13 +7,13 @@ const path = require("path");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
-const authRoutes = require("./routes/authRoutes");
-const foodRoutes = require("./routes/foodRoutes");
-const reviewRoutes = require("./routes/reviewRoutes");
-const orderRoutes = require("./routes/orderRoutes");
-const favoriteRoutes = require("./routes/favoriteRoutes");
-const adminRoutes = require("./routes/adminRoutes");
-const restaurantRoutes = require("./routes/restaurantRoutes");
+const authRoutes = require("./backend/routes/authRoutes");
+const foodRoutes = require("./backend/routes/foodRoutes");
+const reviewRoutes = require("./backend/routes/reviewRoutes");
+const orderRoutes = require("./backend/routes/orderRoutes");
+const favoriteRoutes = require("./backend/routes/favoriteRoutes");
+const adminRoutes = require("./backend/routes/adminRoutes");
+const restaurantRoutes = require("./backend/routes/restaurantRoutes");
 
 app.use(cors());
 app.use(express.json());

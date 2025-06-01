@@ -1,3 +1,5 @@
+// server.js (Corrected Structure)
+
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
@@ -16,27 +18,25 @@ const favoriteRoutes = require("./backend/routes/favoriteRoutes");
 const adminRoutes = require("./backend/routes/adminRoutes");
 const restaurantRoutes = require("./backend/routes/restaurantRoutes");
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// --- API Routes (MUST COME BEFORE THE WILDCARD ROUTE) ---
-app.use("/api/auth", authRoutes); //
-app.use("/api/foods", foodRoutes); //
-// The review routes are already structured to take :foodId at their root.
-// If you want reviews under /api/foods/:foodId/reviews,
-// you'd typically have a route like app.get("/:foodId/reviews", ...) in foodRoutes
-// OR ensure reviewRoutes handle a full path if mounted differently.
-// Given your current reviewRoutes.js, mounting it under /api/foods
-// will lead to paths like /api/foods/:foodId/reviews. This is fine.
-app.use("/api/foods", reviewRoutes); //
-app.use("/api/orders", orderRoutes); //
-app.use("/api/favorites", favoriteRoutes); //
-app.use("/api/admin", adminRoutes); //
-app.use("/api/restaurant", restaurantRoutes); //
+// **Crucial: Define your API routes FIRST**
+// These are your backend endpoints that should handle specific API requests.
+app.use("/api/auth", authRoutes);
+app.use("/api/foods", foodRoutes);
+// reviewRoutes define paths like '/:foodId/reviews'.
+// When mounted at '/api/foods', they become '/api/foods/:foodId/reviews', which is correct.
+app.use("/api/foods", reviewRoutes);
+app.use("/api/orders", orderRoutes);
+app.use("/api/favorites", favoriteRoutes);
+app.use("/api/admin", adminRoutes);
+app.use("/api/restaurant", restaurantRoutes);
 
-
+// Database Connection
 mongoose
   .connect(
     "mongodb+srv://pinkesh:Pinkuu2905@cluster0.qsxjydv.mongodb.net/foodapp?retryWrites=true&w=majority",
@@ -48,19 +48,27 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
-app.get("/", (req, res) => { //
-  res.send("Food Delivery API is running"); //
+// Basic root route for API status (optional, but good for health checks)
+app.get("/", (req, res) => {
+  res.send("Food Delivery API is running");
 });
 
-// Serve frontend static files AFTER your API routes
-app.use(express.static(path.join(__dirname, 'public'))); //
+// **Crucial: Serve static files for your frontend application**
+// This should come BEFORE the wildcard route, but AFTER your API routes.
+// Assuming your client-side build output (like React/Angular/Vue build) is in 'public' or 'frontend'.
+// Based on your original server.js: app.use(express.static(path.join(__dirname, 'public')));
+// If your index.html is in 'frontend' and other assets in 'public', you might need two static serves
+// or ensure 'public' contains everything. For simplicity, let's assume 'public' is the main static folder.
+app.use(express.static(path.join(__dirname, 'public'))); // This serves files like CSS, JS, images
 
-// For any other route (SPA routing), this MUST be the last route defined
-app.get('*', (req, res) => { //
-  res.sendFile(path.join(__dirname, 'frontend', 'index.html')); //
+// **Crucial: The wildcard route for SPA routing (MUST BE THE LAST ROUTE)**
+// This catches all routes that haven't been handled by previous API or static file middleware.
+// It ensures that direct access to client-side routes (e.g., /dashboard) serves your index.html.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html')); // Assuming index.html is in a 'frontend' subfolder
 });
 
-
-app.listen(PORT, () => { //
-  console.log(`Server running on http://localhost:${PORT}`); //
+// Start the server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });

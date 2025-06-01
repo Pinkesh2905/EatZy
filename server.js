@@ -17,26 +17,26 @@ app.get('*', (req, res) => {
 
 const PORT = process.env.PORT || 3000;
 
-const authRoutes = require("./backend/routes/authRoutes");
-const foodRoutes = require("./backend/routes/foodRoutes");
+// const authRoutes = require("./backend/routes/authRoutes");
+// const foodRoutes = require("./backend/routes/foodRoutes");
 // const reviewRoutes = require("./backend/routes/reviewRoutes");
-const orderRoutes = require("./backend/routes/orderRoutes");
-const favoriteRoutes = require("./backend/routes/favoriteRoutes");
-const adminRoutes = require("./backend/routes/adminRoutes");
-const restaurantRoutes = require("./backend/routes/restaurantRoutes");
+// const orderRoutes = require("./backend/routes/orderRoutes");
+// const favoriteRoutes = require("./backend/routes/favoriteRoutes");
+// const adminRoutes = require("./backend/routes/adminRoutes");
+// const restaurantRoutes = require("./backend/routes/restaurantRoutes");
 
 app.use(cors());
 app.use(express.json());
 app.use(bodyParser.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-app.use("/api/auth", authRoutes);
-app.use("/api/foods", foodRoutes); 
+// app.use("/api/auth", authRoutes);
+// app.use("/api/foods", foodRoutes); 
 // app.use("/api/foods", reviewRoutes); 
-app.use("/api/orders", orderRoutes);
-app.use("/api/favorites", favoriteRoutes);
-app.use("/api/admin", adminRoutes);
-app.use("/api/restaurant", restaurantRoutes);
+// app.use("/api/orders", orderRoutes);
+// app.use("/api/favorites", favoriteRoutes);
+// app.use("/api/admin", adminRoutes);
+// app.use("/api/restaurant", restaurantRoutes);
 
 mongoose
   .connect(

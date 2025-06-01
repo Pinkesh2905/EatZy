@@ -1,0 +1,1087 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="FoodApp">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <title>EatZy</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+    <link rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"
+      crossorigin="anonymous" referrerpolicy="no-referrer"/>
+
+    <!-- AngularJS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.8.2/angular.min.js"></script>
+    <script src="app.js"></script>
+    <script src="controllers/foodController.js"></script>
+    <script src="services/foodService.js"></script>
+    <script src="services/authService.js"></script>
+    <script src="controllers/authController.js"></script>
+
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body ng-controller="FoodController" ng-class="{'dark-mode': darkMode}" ng-cloak>
+    <!-- Header -->
+    <div ng-include="'header.html'" ng-init="sharedCart=cart; toggleCartFunc=toggleCart; showCartState=showCart">
+    </div>
+
+    <!-- Food Cards -->
+    <section class="home" ng-if="showHome">
+      <div
+        class="food-container"
+        ng-class="{'blurred': selectedFood}"
+        ng-show="!showCart"
+      >
+        <div
+          ng-repeat="food in foods | filter:$root.searchText | filter:{category: selectedCategory} | orderBy:'-isFavorite'"
+          class="card"
+          style="position: relative"
+        >
+          <span
+            ng-click="toggleFavorite(food); $event.stopPropagation();"
+            style="
+              position: absolute;
+              top: 10px;
+              right: 10px;
+              font-size: 22px;
+              color: #ff4444;
+              cursor: pointer;
+              z-index: 10;
+            "
+            ng-style="{
+              'transform': isFavorite(food) ? 'scale(1.1)' : 'scale(1)',
+              'transition': 'transform 0.2s'
+            }"
+          >
+            <i
+              ng-class="isFavorite(food) ? 'fas fa-heart' : 'far fa-heart'"
+            ></i>
+          </span>
+
+          <div ng-click="selectFood(food)">
+            <img ng-src="{{food.image}}" alt="{{food.name}}" />
+            <h3>{{food.name}}</h3>
+          </div>
+        </div>
+        <p
+          ng-if="(foods | filter:$root.searchText).length === 0"
+          style="
+            text-align: center;
+            margin-top: 40px;
+            font-size: 18px;
+            color: #888;
+          "
+        >
+          No food items match your search 🔍
+        </p>
+      </div>
+    </section>
+
+    <!-- Food Popup Modal -->
+    <div class="modal-overlay" ng-if="selectedFood" ng-click="closePopup()">
+      <div
+        class="modal-content"
+        ng-click="$event.stopPropagation()"
+        style="
+          position: relative;
+          padding: 20px;
+          border-radius: 20px;
+          max-height: 80vh;
+          display: flex;
+          flex-direction: column;
+        "
+      >
+        <div
+          class="close-btn"
+          ng-click="closePopup()"
+          style="
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 24px;
+            color: #999;
+            cursor: pointer;
+            z-index: 10;
+          "
+        >
+          &times;
+        </div>
+
+        <div style="overflow-y: auto; flex-grow: 1; padding-right: 5px">
+          <img
+            ng-src="{{selectedFood.image}}"
+            alt="{{selectedFood.name}}"
+            style="height: 160px; object-fit: cover; border-radius: 10px"
+          />
+          <h2>{{selectedFood.name}}</h2>
+          <p><strong>₹{{selectedFood.price}}</strong></p>
+          <p><em>{{selectedFood.category}}</em></p>
+          <p>
+            {{ selectedFood.description.length > 150 ? (selectedFood.description
+            | limitTo:150) + '...' : selectedFood.description }}
+          </p>
+
+          <div style="margin-top: 20px">
+            <h4>Average Rating</h4>
+            <div ng-if="reviews.length > 0">
+              <span style="font-size: 20px; color: gold">
+                {{ getAverageRating() | number:1 }} ★
+              </span>
+              <span
+                >based on {{ reviews.length }} review{{ reviews.length > 1 ? 's'
+                : '' }}</span
+              >
+            </div>
+            <div ng-if="reviews.length === 0">No reviews yet.</div>
+          </div>
+
+          <div
+            style="margin-top: 15px; max-height: 200px; overflow-y: auto"
+            ng-if="reviews.length > 0"
+          >
+            <h4 style="margin-bottom: 10px">What People Say</h4>
+            <div
+              ng-repeat="review in reviews"
+              style="
+                margin-bottom: 12px;
+                border-bottom: 1px solid #eee;
+                padding-bottom: 8px;
+              "
+            >
+              <strong>{{review.username}}</strong>
+              <div style="font-size: 16px; color: #ff9900">
+                {{ '★'.repeat(review.rating) }}{{ '☆'.repeat(5 - review.rating)
+                }}
+              </div>
+              <p style="margin: 5px 0">{{review.comment}}</p>
+              <small style="color: #aaa"
+                >{{review.createdAt | date:'medium'}}</small
+              >
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 20px; text-align: center">
+          <button ng-if="$root.loggedIn" ng-click="addToCart(selectedFood)">
+            Add to Cart
+          </button>
+          <button ng-if="!$root.loggedIn" ng-click="openAuth()">
+            Login to add this item to cart
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <div class="cart-container" ng-if="showCart" style="margin-top: 200px">
+      <h2>Your Order</h2>
+
+      <!-- If cart is empty -->
+      <div ng-if="cart.length === 0" class="empty-cart">
+        <img
+          src="https://cdn-icons-png.flaticon.com/512/2038/2038854.png"
+          alt="Empty Cart"
+          class="empty-cart-img"
+        />
+        <p class="empty-cart-text">Your cart is currently empty.</p>
+        <button class="edit-btn" ng-click="$root.goHome()">Browse Foods</button>
+      </div>
+
+      <!-- If cart has items -->
+      <div ng-if="cart.length > 0">
+        <div class="cart-item" ng-repeat="item in cart">
+          <img ng-src="{{item.image}}" class="cart-img" />
+          <div class="cart-details">
+            <div class="cart-name">{{item.name}}</div>
+            <div class="cart-price">₹{{item.price}}</div>
+          </div>
+          <div class="qty-controls">
+            <button ng-click="decreaseQty(item)">−</button>
+            <span>{{item.quantity}}</span>
+            <button ng-click="increaseQty(item)">+</button>
+          </div>
+        </div>
+
+        <hr />
+        <div class="summary-row">
+          <span>Subtotal</span>
+          <span>₹{{getSubtotal()}}</span>
+        </div>
+        <div class="summary-row">
+          <span>Delivery Fee</span>
+          <span>₹{{deliveryFee}}</span>
+        </div>
+        <div class="summary-row">
+          <span>Tax</span>
+          <span>₹{{getTax()}}</span>
+        </div>
+        <hr />
+        <div class="summary-row total-row">
+          <span>Total</span>
+          <span>₹{{getTotal()}}</span>
+        </div>
+        <button class="checkout-btn" ng-click="checkout()">Checkout</button>
+      </div>
+    </div>
+
+    <!-- Auth Modal -->
+    <div
+      ng-controller="AuthController"
+      ng-show="$root.showAuthModal"
+      class="auth-modal"
+      ng-cloak
+    >
+      <div class="auth-modal-content" ng-click="$event.stopPropagation()">
+        <span ng-click="$root.showAuthModal = false" class="close-btn"
+          >&times;</span
+        >
+
+        <!-- Login Form -->
+        <div ng-if="isLogin">
+          <h2>Login</h2>
+          <form ng-submit="submitAuth()">
+            <input
+              type="email"
+              ng-model="authData.email"
+              placeholder="Email"
+              required
+            />
+            <input
+              type="password"
+              ng-model="authData.password"
+              placeholder="Password"
+              required
+            />
+            <button type="submit">Login</button>
+          </form>
+          <button ng-click="toggleAuthMode()">
+            Don't have an account? Signup
+          </button>
+        </div>
+
+        <!-- Signup Form -->
+        <div ng-if="!isLogin">
+          <h2>Signup</h2>
+          <form ng-submit="submitAuth()">
+            <input
+              type="text"
+              ng-model="authData.username"
+              placeholder="Username"
+              required
+            />
+            <input
+              type="email"
+              ng-model="authData.email"
+              placeholder="Email"
+              required
+            />
+            <input
+              type="password"
+              ng-model="authData.password"
+              placeholder="Password (min 6 chars)"
+              required
+            />
+            <button type="submit">Signup</button>
+          </form>
+          <button ng-click="toggleAuthMode()">
+            Already have an account? Login
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Profile Page -->
+    <section class="profile-page" ng-if="showProfile">
+      <div class="profile-container">
+        <div class="profile-header">
+          <!-- Avatar Preview -->
+          <img
+            ng-src="{{previewAvatarUrl || ('http://localhost:3000' + profile.avatar)}}"
+            class="profile-avatar"
+            style="margin-bottom: 15px"
+          />
+
+          <h2>{{profile.username}}</h2>
+          <p>{{profile.email}}</p>
+          <button
+            class="edit-btn"
+            ng-click="editProfile()"
+            ng-if="!editingProfile"
+          >
+            Edit Profile
+          </button>
+        </div>
+
+        <!-- Edit Form -->
+        <form
+          ng-if="editingProfile"
+          ng-submit="saveProfile()"
+          enctype="multipart/form-data"
+          class="edit-form"
+        >
+          <div class="form-group">
+            <label>Username</label>
+            <input type="text" ng-model="updatedProfile.username" required />
+          </div>
+
+          <div class="form-group">
+            <label>Email</label>
+            <input type="email" ng-model="updatedProfile.email" required />
+          </div>
+
+          <div class="form-group">
+            <label>Profile Picture</label>
+            <input
+              type="file"
+              accept="image/*"
+              onchange="angular.element(this).scope().onFileChange(this)"
+            />
+          </div>
+
+          <button class="edit-btn" type="submit">Save Changes</button>
+          <button
+            class="edit-btn"
+            type="button"
+            ng-click="cancelEdit()"
+            style="background-color: #ccc; color: #333"
+          >
+            Cancel
+          </button>
+        </form>
+
+        <!-- Password Change -->
+        <div class="edit-form" ng-if="editingProfile" style="margin-top: 20px">
+          <h4>Change Password</h4>
+          <div class="form-group" style="position: relative">
+            <input
+              type="{{showPassword ? 'text' : 'password'}}"
+              ng-model="updatedPassword"
+              placeholder="New Password (min 6 chars)"
+              required
+              style="padding-right: 40px"
+            />
+            <span
+              style="
+                position: absolute;
+                right: 10px;
+                top: 10px;
+                cursor: pointer;
+              "
+              ng-click="showPassword = !showPassword"
+            >
+              <i
+                class="fa"
+                ng-class="showPassword ? 'fa-eye-slash' : 'fa-eye'"
+              ></i>
+            </span>
+          </div>
+
+          <button
+            class="edit-btn"
+            type="button"
+            ng-click="updatePassword(updatedPassword)"
+          >
+            Update Password
+          </button>
+        </div>
+
+        <!-- Profile Read-Only Details -->
+        <div class="profile-details" ng-if="!editingProfile">
+          <div class="detail-item">
+            <span>Full Name:</span>
+            <strong>{{profile.username}}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Email:</span>
+            <strong>{{profile.email}}</strong>
+          </div>
+          <div class="detail-item">
+            <span>Member Since:</span>
+            <strong
+              >{{ profile.createdAt ? (profile.createdAt | date:'longDate') :
+              'Today' }}</strong
+            >
+          </div>
+        </div>
+
+        <div class="profile-details" ng-if="!editingProfile">
+          <h3 style="margin-top: 30px; color: #ff6600">Order History</h3>
+
+          <div class="track-scroll-box">
+            <div ng-if="orderHistory.length === 0">
+              <p>You haven't placed any orders yet.</p>
+            </div>
+
+            <div
+              ng-repeat="order in orderHistory"
+              class="edit-form"
+              style="margin-top: 15px"
+            >
+              <p>
+                <strong>Order Date:</strong> {{ order.createdAt | date:'medium'
+                }}
+              </p>
+              <p><strong>Total:</strong> ₹{{ order.total }}</p>
+              <ul>
+                <li ng-repeat="item in order.items track by $index">
+                  <strong>{{ item.name }}</strong> × {{ item.quantity }} — ₹{{
+                  item.price }}
+
+                  <button
+                    class="edit-btn"
+                    style="margin-left: 10px; font-size: 12px"
+                    ng-click="startReview(item)"
+                  >
+                    Leave a Review
+                  </button>
+
+                  <!-- Review Form -->
+                  <!-- ⭐ Modern Review Form -->
+                  <div
+                    ng-if="reviewingItemId === item._id"
+                    style="
+                      margin-top: 15px;
+                      background: #f9f9f9;
+                      padding: 15px;
+                      border-radius: 10px;
+                      box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+                    "
+                  >
+                    <label
+                      style="
+                        font-weight: bold;
+                        display: block;
+                        margin-bottom: 5px;
+                      "
+                      >Rating:</label
+                    >
+                    <div
+                      style="
+                        font-size: 22px;
+                        color: #ccc;
+                        cursor: pointer;
+                        margin-bottom: 10px;
+                      "
+                    >
+                      <span
+                        ng-repeat="star in [1,2,3,4,5]"
+                        ng-click="newReview.rating = star"
+                        ng-class="{'text-warning': star <= newReview.rating}"
+                        ng-style="{ color: star <= newReview.rating ? '#ff9900' : '#ccc' }"
+                        >★</span
+                      >
+                    </div>
+
+                    <textarea
+                      ng-model="newReview.comment"
+                      placeholder="Write your review..."
+                      rows="3"
+                      style="
+                        width: 100%;
+                        border-radius: 10px;
+                        padding: 10px;
+                        border: 1px solid #ddd;
+                        font-family: inherit;
+                      "
+                    ></textarea>
+
+                    <div style="margin-top: 10px">
+                      <button
+                        ng-click="submitReviewFromHistory(item)"
+                        style="
+                          padding: 6px 16px;
+                          background: #ff6600;
+                          color: white;
+                          border: none;
+                          border-radius: 25px;
+                          margin-right: 10px;
+                        "
+                      >
+                        Submit
+                      </button>
+                      <button
+                        ng-click="cancelReview()"
+                        style="
+                          padding: 6px 16px;
+                          background: #eee;
+                          color: #333;
+                          border: none;
+                          border-radius: 25px;
+                        "
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  </div>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Favorites Page -->
+    <section class="home" ng-if="showFavorites">
+      <h2 style="text-align: center; margin-top: 140px">
+        ❤️ Your Favorite Foods
+      </h2>
+      <div class="food-container">
+        <div
+          class="card"
+          ng-repeat="food in favorites"
+          style="position: relative"
+          ng-click="selectFood(food)"
+        >
+          <img ng-src="{{food.image}}" alt="{{food.name}}" />
+          <h3>{{food.name}}</h3>
+        </div>
+      </div>
+    </section>
+
+    <!-- Admin Dashboard -->
+    <section class="home" ng-if="showAdmin">
+      <div
+        class="admin-dashboard"
+        style="
+          margin-top: 140px;
+          padding: 20px;
+          max-width: 1000px;
+          margin-inline: auto;
+        "
+      >
+        <h2 style="color: #ff6600">⚙️ Admin Dashboard</h2>
+
+        <!-- Tabs -->
+        <div style="margin: 20px 0">
+          <button
+            ng-click="adminTab = 'users'"
+            ng-class="{'active-tab': adminTab === 'users'}"
+          >
+            Users
+          </button>
+          <button
+            ng-click="adminTab = 'foods'"
+            ng-class="{'active-tab': adminTab === 'foods'}"
+          >
+            Foods
+          </button>
+          <button
+            ng-click="adminTab = 'orders'"
+            ng-class="{'active-tab': adminTab === 'orders'}"
+          >
+            Orders
+          </button>
+          <button
+            ng-click="adminTab = 'restaurants'"
+            ng-class="{'active-tab': adminTab === 'restaurants'}"
+          >
+            Restaurants
+          </button>
+        </div>
+
+        <!-- USERS TAB -->
+        <div ng-show="adminTab === 'users'">
+          <h3>👥 All Users</h3>
+          <table>
+            <tr>
+              <th>Username</th>
+              <th>Email</th>
+              <th>Role</th>
+            </tr>
+            <tr ng-repeat="u in adminUsers">
+              <td>{{u.username}}</td>
+              <td>{{u.email}}</td>
+              <td>{{u.role}}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- FOODS TAB -->
+        <div ng-show="adminTab === 'foods'">
+          <h3>🍔 All Food Items</h3>
+          <table>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+            </tr>
+            <tr ng-repeat="f in adminFoods">
+              <td>{{f.name}}</td>
+              <td>{{f.category}}</td>
+              <td>₹{{f.price}}</td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- ORDERS TAB -->
+        <div ng-show="adminTab === 'orders'">
+          <h3>📦 All Orders</h3>
+
+          <!-- Filter & Search Controls -->
+          <div
+            style="
+              margin-bottom: 15px;
+              display: flex;
+              flex-wrap: wrap;
+              gap: 10px;
+            "
+          >
+            <input
+              type="text"
+              ng-model="adminSearchText"
+              placeholder="Search by food/user"
+              style="
+                padding: 8px 12px;
+                border-radius: 20px;
+                border: 1px solid #ccc;
+              "
+            />
+
+            <select
+              ng-model="adminFilterStatus"
+              style="
+                padding: 8px 12px;
+                border-radius: 20px;
+                border: 1px solid #ccc;
+              "
+            >
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="Preparing">Preparing</option>
+              <option value="Out for delivery">Out for delivery</option>
+              <option value="Delivered">Delivered</option>
+              <option value="Cancelled">Cancelled</option>
+            </select>
+
+            <select
+              ng-model="sortOrder"
+              style="
+                padding: 8px 12px;
+                border-radius: 20px;
+                border: 1px solid #ccc;
+              "
+            >
+              <option value="desc">Newest First</option>
+              <option value="asc">Oldest First</option>
+            </select>
+
+            <button ng-click="exportToCSV()" class="edit-btn">
+              Export CSV
+            </button>
+          </div>
+
+          <table>
+            <tr>
+              <th>User</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Change Status</th>
+            </tr>
+            <tr
+              ng-repeat="o in filteredAdminOrders()"
+              ng-class="{
+                  'status-pending': getDynamicStatus(o) === 'Pending',
+                  'status-delivered': getDynamicStatus(o) === 'Delivered',
+                  'status-cancelled': getDynamicStatus(o) === 'Cancelled'
+                }"
+            >
+              <td>{{o.username || 'Guest'}}</td>
+              <td>
+                <ul style="padding-left: 0; list-style: none; margin: 0">
+                  <li ng-repeat="item in o.items">
+                    {{item.name}} (x{{item.quantity}})
+                  </li>
+                </ul>
+              </td>
+              <td>₹{{o.total}}</td>
+              <td>{{ getDynamicStatus(o) }}</td>
+              <td>{{o.createdAt | date:'medium'}}</td>
+              <td>
+                <select ng-model="o.status" ng-change="changeOrderStatus(o)">
+                  <option>Pending</option>
+                  <option>Preparing</option>
+                  <option>Out for delivery</option>
+                  <option>Delivered</option>
+                  <option>Cancelled</option>
+                </select>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <!-- RESTAURANTS TAB -->
+        <div ng-show="adminTab === 'restaurants'">
+          <h3>🍽️ Pending Restaurant Approvals</h3>
+
+          <div ng-if="restaurantRequests && restaurantRequests.length === 0">
+            <p style="color: #777">No pending restaurant requests.</p>
+          </div>
+
+          <div ng-if="restaurantRequests && restaurantRequests.length > 0">
+            <div
+              ng-repeat="r in restaurantRequests"
+              class="card"
+              style="
+                max-width: 600px;
+                margin: 20px auto;
+                padding: 20px;
+                background: #fff;
+                border-radius: 12px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+              "
+            >
+              <h3 style="color: #333">
+                {{ r.restaurantDetails && r.restaurantDetails.name ?
+                r.restaurantDetails.name : 'Unnamed Restaurant' }}
+              </h3>
+              <p><strong>Owner:</strong> {{ r.username }}</p>
+              <p><strong>Email:</strong> {{ r.email }}</p>
+              <p>
+                <strong>Phone:</strong> {{ r.restaurantDetails &&
+                r.restaurantDetails.phone || '-' }}
+              </p>
+              <p>
+                <strong>Location:</strong> {{ r.restaurantDetails &&
+                r.restaurantDetails.location || '-' }}
+              </p>
+              <p style="margin-bottom: 10px">
+                <strong>Description:</strong> {{ r.restaurantDetails &&
+                r.restaurantDetails.description || '-' }}
+              </p>
+
+              <div style="display: flex; gap: 10px; justify-content: flex-end">
+                <button
+                  ng-click="approveRestaurant(r._id)"
+                  style="
+                    background-color: #28a745;
+                    color: #fff;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    border: none;
+                  "
+                >
+                  Approve
+                </button>
+                <button
+                  ng-click="rejectRestaurant(r._id)"
+                  style="
+                    background-color: #dc3545;
+                    color: #fff;
+                    padding: 6px 14px;
+                    border-radius: 20px;
+                    border: none;
+                  "
+                >
+                  Reject
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div ng-if="!restaurantRequests">
+            <p style="color: #aaa">Loading restaurant requests...</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- TRACK ORDER SECTION -->
+    <section class="home" ng-show="showTrack">
+      <div
+        style="
+          margin-top: 140px;
+          padding: 20px;
+          max-width: 900px;
+          margin-inline: auto;
+        "
+      >
+        <h2 style="margin-bottom: 20px">🚚 Track Your Orders</h2>
+
+        <!-- Filter + Search -->
+        <div
+          style="
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            margin-bottom: 20px;
+          "
+        >
+          <select
+            ng-model="orderFilterStatus"
+            style="
+              padding: 6px 12px;
+              border-radius: 20px;
+              border: 1px solid #ccc;
+            "
+          >
+            <option value="">All Statuses</option>
+            <option value="Pending">Pending</option>
+            <option value="Preparing">Preparing</option>
+            <option value="Out for delivery">Out for delivery</option>
+            <option value="Delivered">Delivered</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+          <input
+            type="text"
+            ng-model="orderSearchText"
+            placeholder="Search by food name..."
+            style="
+              padding: 6px 12px;
+              border-radius: 20px;
+              border: 1px solid #ccc;
+              margin-left: 10px;
+            "
+          />
+        </div>
+
+        <!-- No Orders -->
+        <div ng-if="filteredOrders().length === 0">
+          <p>No orders found.</p>
+        </div>
+
+        <!-- Orders Loop -->
+        <div class="track-scroll-box">
+          <div
+            ng-repeat="order in filteredOrders()"
+            class="cart-container"
+            style="
+              margin-bottom: 30px;
+              box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+              border-left: 6px solid #ff6600;
+            "
+          >
+            <div
+              style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+              "
+            >
+              <h3 style="margin-top: 0">
+                🧾 {{order.createdAt | date:'medium'}}
+              </h3>
+              <!-- Cancel Button -->
+              <button
+                class="edit-btn"
+                ng-click="cancelOrder(order._id)"
+                ng-if="order.status === 'Pending' || order.status === 'Preparing'"
+                style="background-color: #e63946"
+              >
+                Cancel
+              </button>
+            </div>
+
+            <p><strong>Total:</strong> ₹{{order.total}}</p>
+            <p><strong>Status:</strong> {{ getDynamicStatus(order) }}</p>
+
+            <!-- 🍽️ Order Items -->
+            <div
+              ng-repeat="item in order.items"
+              style="
+                display: flex;
+                align-items: center;
+                gap: 15px;
+                margin: 10px 0;
+              "
+            >
+              <img
+                ng-src="{{item.image}}"
+                style="
+                  width: 60px;
+                  height: 60px;
+                  object-fit: cover;
+                  border-radius: 10px;
+                "
+              />
+              <div>
+                <strong>{{item.name}}</strong> — ₹{{item.price}} ×
+                {{item.quantity}}
+              </div>
+            </div>
+
+            <!-- 📍 Dynamic Status Tracker -->
+            <div class="status-tracker">
+              <div
+                ng-repeat="step in ['Pending', 'Preparing', 'Out for delivery', 'Delivered']"
+                class="step"
+                ng-class="{'active': step === getDynamicStatus(order) }"
+              >
+                <span class="dot"></span>
+                <span>{{step}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Restaurant Registration Modal -->
+    <div ng-show="showRestaurantModal" class="auth-modal" ng-cloak>
+      <div class="auth-modal-content" ng-click="$event.stopPropagation()">
+        <span ng-click="showRestaurantModal = false" class="close-btn"
+          >&times;</span
+        >
+        <h2>🍽️ Register Your Restaurant</h2>
+
+        <form ng-submit="submitRestaurantRegistration()">
+          <input
+            type="text"
+            ng-model="restaurantData.username"
+            placeholder="Username"
+            required
+          />
+          <input
+            type="email"
+            ng-model="restaurantData.email"
+            placeholder="Email"
+            required
+          />
+          <input
+            type="password"
+            ng-model="restaurantData.password"
+            placeholder="Password (min 6 chars)"
+            required
+          />
+          <input
+            type="text"
+            ng-model="restaurantData.restaurantName"
+            placeholder="Restaurant Name"
+            required
+          />
+          <input
+            type="text"
+            ng-model="restaurantData.phone"
+            placeholder="Phone"
+            required
+          />
+          <input
+            type="text"
+            ng-model="restaurantData.location"
+            placeholder="Location"
+          />
+          <textarea
+            ng-model="restaurantData.description"
+            placeholder="Short Description"
+            rows="3"
+            style="
+              width: 100%;
+              border-radius: 10px;
+              padding: 10px;
+              border: 1px solid #ccc;
+            "
+          ></textarea>
+          <button type="submit">Submit Registration</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Restaurant Dashboard Section -->
+    <section class="home" ng-show="showRestaurantDashboard">
+      <div class="admin-dashboard"
+        style=" margin-top: 140px;
+          padding: 20px;
+          max-width: 900px;
+          margin-inline: auto;">
+        <h2>🍽️ Restaurant Dashboard</h2>
+
+        <!-- Food Form -->
+        <form
+          ng-submit="addOrUpdateFood()"
+          style="
+            margin-bottom: 30px;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 12px;
+          "
+        >
+          <h4 style="margin-bottom: 10px">
+            {{ editingFood ? 'Edit' : 'Add New' }} Food Item
+          </h4>
+          <div class="form-group" style="margin-bottom: 10px">
+            <label>Name</label>
+            <input type="text" ng-model="foodForm.name" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 10px">
+            <label>Category</label>
+            <input type="text" ng-model="foodForm.category" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 10px">
+            <label>Price (₹)</label>
+            <input type="number" ng-model="foodForm.price" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 10px">
+            <label>Image URL</label>
+            <input type="text" ng-model="foodForm.image" required />
+          </div>
+          <div class="form-group" style="margin-bottom: 10px">
+            <label>Description</label>
+            <textarea
+              ng-model="foodForm.description"
+              required
+              rows="3"
+            ></textarea>
+          </div>
+          <button type="submit" class="edit-btn">
+            {{ editingFood ? 'Update' : 'Add' }} Item
+          </button>
+          <button
+            ng-if="editingFood"
+            type="button"
+            class="edit-btn"
+            style="background-color: #ccc; color: #333"
+            ng-click="cancelEditFood()"
+          >
+            Cancel
+          </button>
+        </form>
+
+        <!-- Food List -->
+        <h3>Your Menu</h3>
+        <table style="width: 100%; border-collapse: collapse">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Price</th>
+              <th>Description</th>
+              <th>Image</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr ng-repeat="f in restaurantFoods">
+              <td>{{f.name}}</td>
+              <td>{{f.category}}</td>
+              <td>₹{{f.price}}</td>
+              <td>{{f.description}}</td>
+              <td>
+                <img
+                  ng-src="{{f.image}}"
+                  width="60"
+                  height="40"
+                  style="object-fit: cover; border-radius: 5px"
+                />
+              </td>
+              <td>
+                <button class="edit-btn" ng-click="editFood(f)">Edit</button>
+                <button
+                  class="edit-btn"
+                  style="background-color: #dc3545"
+                  ng-click="deleteFood(f._id)"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- Footer -->
+    <div ng-include="'footer.html'"></div>
+  </body>
+</html>

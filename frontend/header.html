@@ -1,0 +1,261 @@
+<style>
+  body {
+    margin: 0;
+    padding-top: 30px;
+    font-family: "Poppins", sans-serif;
+  }
+
+  html,
+  body {
+    overflow-x: hidden;
+  }
+
+  header {
+    position: fixed;
+    top: 0;
+    width: 97%;
+    max-width: 100vw;
+    overflow-x: hidden;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 25px; /* reduced padding for compact height */
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    flex-wrap: wrap;
+  }
+
+  .header-left {
+    flex: 0 0 auto;
+  }
+
+  .logo {
+    font-size: 22px;
+    font-weight: 600;
+    color: #ff6600;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .header-center {
+    flex: 1 1 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    flex-wrap: wrap;
+  }
+
+  .header-center a {
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+    transition: 0.2s;
+    white-space: nowrap;
+  }
+
+  .header-center a:hover {
+    color: #ff6600;
+  }
+
+  .search-box input {
+    padding: 6px 15px;
+    border-radius: 20px;
+    border: 1px solid #ccc;
+    outline: none;
+    font-size: 14px;
+    transition: 0.3s;
+    width: 200px;
+  }
+
+  .search-box input:focus {
+    border-color: #ff6600;
+    box-shadow: 0 0 5px rgba(255, 102, 0, 0.3);
+  }
+
+  .header-right {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    white-space: nowrap;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .header-right span,
+  .header-right a {
+    font-weight: 500;
+    font-size: 16px;
+    color: #333;
+    text-decoration: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 30px;
+    padding: 4px; /* reduced padding */
+  }
+
+  .header-right span:hover,
+  .header-right a:hover {
+    color: #ff6600;
+  }
+
+  .notification-container,
+  .cart-container {
+    position: relative;
+  }
+
+  .badge {
+    position: absolute;
+    top: -6px;
+    right: -8px;
+    background-color: red;
+    color: white;
+    font-size: 10px;
+    padding: 1px 5px;
+    border-radius: 50%;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .notification-list {
+    display: none;
+    position: absolute;
+    right: 0;
+    top: 40px;
+    background: white;
+    width: 250px;
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+    z-index: 1001;
+  }
+
+  .notification-list.show {
+    display: block;
+  }
+
+  .notification-list p {
+    margin: 0;
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+    font-size: 14px;
+    color: #333;
+  }
+
+  .notification-list p:last-child {
+    border-bottom: none;
+  }
+
+  @media (max-width: 768px) {
+    header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    .header-center {
+      justify-content: flex-start;
+      gap: 15px;
+      width: 100%;
+      margin-top: 10px;
+    }
+
+    .search-box {
+      width: 100%;
+    }
+
+    .search-box input {
+      width: 100%;
+    }
+
+    .header-right {
+      width: 100%;
+      justify-content: space-between;
+      margin-top: 10px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+  }
+</style>
+
+<header>
+  <div class="header-left">
+    <a href="#" class="logo" ng-click="goHome()">🍽️ EatZy</a>
+  </div>
+
+  <nav class="header-center">
+    <a href="" ng-click="$root.goHome()">Home</a>
+    <a href="#/restaurants">Restaurants</a>
+    <a href="" ng-click="$root.goToFavorites()">Favorites</a>
+    <a href="" ng-click="$root.goToTrack()">Track Order</a>
+
+    <div class="search-box">
+
+      <input type="text"
+       ng-model="$parent.searchQuery"
+       ng-change="$parent.debouncedSearch()"
+       placeholder="Search food..." />
+
+    </div>
+    <div ng-if="$parent.searching" style="margin-top: 5px;">
+      <i class="fas fa-spinner fa-spin" style="color: #ff6600;"></i> Searching...
+    </div>    
+    
+  </nav>
+
+  <div class="header-right">
+    <span
+      id="theme-toggle"
+      title="Toggle Dark Mode"
+      ng-click="toggleDarkMode()"
+    >
+      <i class="fas" ng-class="darkMode ? 'fa-sun' : 'fa-moon'"></i>
+    </span>
+
+    <!-- Notifications -->
+    <div class="notification-container">
+      <span ng-click="toggleNotifications()" title="Notifications">
+        <i class="fas fa-bell"></i>
+        <span class="badge" ng-if="notifications.length"
+          >{{notifications.length}}</span
+        >
+      </span>
+      <div class="notification-list" ng-class="{'show': showNotifications}">
+        <p ng-repeat="note in notifications">{{note}}</p>
+        <p ng-if="notifications.length == 0">No new notifications</p>
+      </div>
+    </div>
+
+    <!-- Cart -->
+    <div ng-if="$root.loggedIn" class="cart-container">
+      <span ng-click="toggleCart()" title="View Cart">
+        <i class="fas fa-shopping-cart"></i>
+        <span class="badge" ng-if="cart.length > 0">{{cart.length}}</span>
+      </span>
+    </div>
+
+    <!-- Show Login/Signup only if NOT logged in -->
+    <button ng-if="!$root.loggedIn" ng-click="$root.showAuthModal = true">
+      Login / Signup
+    </button>
+
+    <!-- Show Profile icon only if logged in -->
+    <a ng-if="$root.loggedIn" href="" ng-click="$root.showProfilePage()" title="Your Profile">
+        <i class="fas fa-user-circle"></i>
+    </a>
+
+    <a ng-if="$root.loggedIn" href="" ng-click="$root.goToAdmin()" title="Admin Panel">
+      <i class="fas fa-tools"></i>
+    </a>    
+
+    <!-- Logout Icon -->
+    <span ng-if="$root.loggedIn" ng-click="$root.logout()" title="Logout">
+        <i class="fas fa-sign-out-alt"></i>
+    </span>
+  </div>
+</header>

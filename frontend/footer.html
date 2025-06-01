@@ -1,0 +1,111 @@
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+<style>
+    footer {
+        background-color: #f7f7f7;
+        padding: 40px 60px;
+        font-family: 'Poppins', sans-serif;
+        color: #333;
+        border-top: 2px solid #e0e0e0;
+    }
+
+    .footer-content {
+        display: flex;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 40px;
+    }
+
+    .footer-column {
+        flex: 1;
+        min-width: 200px;
+    }
+
+    .footer-column h3 {
+        font-size: 18px;
+        margin-bottom: 15px;
+        color: #ff6600;
+    }
+
+    .footer-column p,
+    .footer-column a {
+        font-size: 14px;
+        color: #555;
+        text-decoration: none;
+        margin-bottom: 8px;
+        display: block;
+    }
+
+    .footer-column a:hover {
+        color: #ff6600;
+    }
+
+    .social-icons i {
+        font-size: 20px;
+        margin-right: 15px;
+        color: #333;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+    .social-icons i:hover {
+        color: #ff6600;
+    }
+
+    .footer-bottom {
+        text-align: center;
+        margin-top: 30px;
+        font-size: 13px;
+        color: #888;
+    }
+
+    @media (max-width: 768px) {
+        .footer-content {
+            flex-direction: column;
+        }
+    }
+</style>
+
+<footer id="main-footer">
+    <div class="footer-content">
+        <div class="footer-column">
+            <h3>🍽️ EatZy</h3>
+            <p>Delivering deliciousness to your door with love and speed.</p>
+            <div class="social-icons">
+                <i class="fab fa-facebook-f" title="Facebook"></i>
+                <i class="fab fa-instagram" title="Instagram"></i>
+                <i class="fab fa-twitter" title="Twitter"></i>
+                <i class="fab fa-youtube" title="YouTube"></i>
+            </div>
+            <a href="" ng-click="openRestaurantRegister()" style="color: #ff6600; font-weight: 500; margin-top: 15px;">
+                🍽️ Want to sell on EatZy? Register your restaurant
+            </a> 
+            <br>
+            <a href="" ng-click="$root.showRestaurantDashboardPage()">Restaurant Dashboard</a>
+          
+        </div>
+
+        <div class="footer-column">
+            <h3>Quick Links</h3>
+            <a href="#">Home</a>
+            <a href="#">Restaurants</a>
+            <a href="#">Favorites</a>
+            <a href="#">Track Order</a>
+        </div>
+
+        <div class="footer-column">
+            <h3>Help & Support</h3>
+            <a href="#">Contact Us</a>
+            <a href="#">Privacy Policy</a>
+            <a href="#">Terms of Use</a>
+            <a href="#">FAQs</a>
+        </div>
+    </div>
+
+    <div class="footer-bottom">
+        © 2025 EatZy. All rights reserved.
+    </div>
+</footer>
+
+<!-- Font Awesome Icons -->
+<script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>

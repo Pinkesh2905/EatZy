@@ -20,14 +20,17 @@ const restaurantRoutes = require("./backend/routes/restaurantRoutes");
 
 // Middleware setup
 app.use(cors());
-app.use(express.json());
-app.use(bodyParser.json());
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+app.use(express.json()); // To parse JSON request bodies
+app.use(bodyParser.json()); // bodyParser.json() is often redundant if express.json() is used with Express 4.16.0+, but harmless.
+app.use("/uploads", express.static(path.join(__dirname, "uploads"))); // Serve uploaded files
 
 // --- IMPORTANT: DEFINE YOUR API ROUTES HERE, BEFORE ANY WILDCARD OR GENERAL STATIC FILE SERVING ---
+// These are your backend endpoints that should handle specific API requests.
 app.use("/api/auth", authRoutes);
 app.use("/api/foods", foodRoutes);
-app.use("/api/foods", reviewRoutes); // This is correctly structured with :foodId inside reviewRoutes
+// reviewRoutes define paths like '/:foodId/reviews'.
+// When mounted at '/api/foods', they become '/api/foods/:foodId/reviews', which is correct.
+app.use("/api/foods", reviewRoutes);
 app.use("/api/orders", orderRoutes);
 app.use("/api/favorites", favoriteRoutes);
 app.use("/api/admin", adminRoutes);
@@ -45,20 +48,23 @@ mongoose
   .then(() => console.log("MongoDB connected"))
   .catch((err) => console.log("MongoDB connection error:", err));
 
-// Optional: A basic root route for API status
+// Optional: A basic root route for API status/health check
 app.get("/", (req, res) => {
   res.send("Food Delivery API is running");
 });
 
 // --- IMPORTANT: SERVE YOUR FRONTEND STATIC FILES ---
 // This should come after your API routes so API requests don't get intercepted.
-app.use(express.static(path.join(__dirname, 'public'))); // Assuming your Angular build output is in 'public'
+// Assuming your Angular build output (e.g., HTML, CSS, JS bundles) is in a folder named 'public'.
+app.use(express.static(path.join(__dirname, 'public')));
 
 // --- IMPORTANT: THE WILDCARD ROUTE FOR SPA CLIENT-SIDE ROUTING (MUST BE THE VERY LAST) ---
-// This route will catch any request not handled by the API routes or static files,
-// and serve your frontend's index.html, allowing Angular to handle client-side routing.
+// This route will catch any request that has not been handled by the API routes or static files.
+// It ensures that direct access to client-side routes (e.g., your-app.com/dashboard)
+// serves your frontend's index.html, allowing your Angular application to handle routing.
 app.get('*', (req, res) => {
-  // Ensure 'frontend' is the correct subdirectory for your index.html
+  // Ensure 'frontend' is the correct subdirectory where your index.html is located.
+  // If index.html is directly in 'public', you might need to adjust this.
   res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
 });
 

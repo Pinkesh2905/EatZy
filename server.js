@@ -4,6 +4,15 @@ const cors = require("cors");
 const bodyParser = require("body-parser");
 const path = require("path");
 
+// Serve frontend static files
+app.use(express.static(path.join(__dirname, 'public')));
+
+// For any other route, serve index.html (for SPA routing)
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, 'frontend', 'index.html'));
+});
+
+
 const app = express();
 const PORT = process.env.PORT || 3000;
 

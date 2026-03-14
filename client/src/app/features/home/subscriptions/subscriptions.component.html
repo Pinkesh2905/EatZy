@@ -1,0 +1,32 @@
+<div class="subs-container">
+  <div class="header-section">
+    <h1>EatZy <span class="text-primary">Subscriptions</span></h1>
+    <p>Flexible meal plans tailored for your health and convenience.</p>
+  </div>
+
+  <div class="plans-grid">
+    @for (plan of plans; track plan.name) {
+      <div class="plan-card glass-card" [class.popular]="plan.type === 'monthly'">
+        @if (plan.type === 'monthly') {
+          <div class="plan-badge">BEST VALUE</div>
+        }
+        <h2>{{ plan.name }}</h2>
+        <div class="price-section">
+          <span class="currency">₹</span>
+          <span class="price">{{ plan.price }}</span>
+          <span class="duration">/{{ plan.type === 'weekly' ? 'week' : 'month' }}</span>
+        </div>
+        
+        <ul class="features-list">
+          @for (feature of plan.features; track feature) {
+            <li>
+              <span class="check">✓</span> {{ feature }}
+            </li>
+          }
+        </ul>
+
+        <button class="btn-primary" (click)="selectPlan(plan)">Subscribe Now</button>
+      </div>
+    }
+  </div>
+</div>

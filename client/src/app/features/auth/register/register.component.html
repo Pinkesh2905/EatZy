@@ -1,0 +1,55 @@
+<div class="auth-container">
+  <div class="glass-card">
+    <h2 style="text-align: center; margin-bottom: 8px; font-size: 28px;">Join EatZy</h2>
+    <p style="text-align: center; color: var(--text-muted); margin-bottom: 32px;">Create your account to get started</p>
+
+    <form (ngSubmit)="onSubmit()" #regForm="ngForm">
+      <div class="input-group">
+        <label>Full Name</label>
+        <input type="text" name="name" [(ngModel)]="userData.name" required placeholder="John Doe">
+      </div>
+
+      <div class="input-group">
+        <label>Email Address</label>
+        <input type="email" name="email" [(ngModel)]="userData.email" required placeholder="name@example.com">
+      </div>
+      
+      <div class="input-group">
+        <label>Phone Number</label>
+        <input type="text" name="phone" [(ngModel)]="userData.phone" placeholder="+91 00000 00000">
+      </div>
+
+      <div class="input-group">
+        <label>Role</label>
+        <select name="role" [(ngModel)]="userData.role">
+          <option value="customer">Customer</option>
+          <option value="restaurant_owner">Restaurant Owner</option>
+          <option value="home_chef">Home Chef</option>
+          <option value="delivery_partner">Delivery Partner</option>
+        </select>
+      </div>
+
+      <div class="input-group">
+        <label>Password</label>
+        <input type="password" name="password" [(ngModel)]="userData.password" required placeholder="••••••••">
+      </div>
+
+      <div class="input-group">
+        <label>Delivery Address</label>
+        <input type="text" name="address" [(ngModel)]="userData.address" placeholder="Apartment, street, area">
+      </div>
+
+      <div *ngIf="error" style="color: var(--primary); font-size: 14px; margin-bottom: 16px;">
+        {{ error }}
+      </div>
+
+      <button type="submit" class="btn-primary" [disabled]="!regForm.valid || loading">
+        {{ loading ? 'Creating Account...' : 'Sign Up' }}
+      </button>
+    </form>
+
+    <p style="text-align: center; margin-top: 24px; font-size: 14px; color: var(--text-muted);">
+      Already have an account? <a routerLink="/auth/login" style="color: var(--primary); text-decoration: none; font-weight: 600;">Sign In</a>
+    </p>
+  </div>
+</div>

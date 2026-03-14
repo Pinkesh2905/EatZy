@@ -1,0 +1,45 @@
+<div class="history-container">
+  <h1>Your <span class="text-primary">Orders</span></h1>
+
+  <div *ngIf="loading" class="loader">Loading orders...</div>
+  <div *ngIf="!loading && error" class="error-msg">{{ error }}</div>
+
+  <div class="orders-list" *ngIf="!loading && !error && orders.length > 0; else noOrders">
+    <div class="order-card glass-card" *ngFor="let order of orders">
+      <div class="order-header">
+        <div>
+          <span class="order-id">Order #{{ order._id.slice(-6).toUpperCase() }}</span>
+          <span class="order-date">{{ order.createdAt | date:'medium' }}</span>
+        </div>
+        <span class="status-badge" [ngClass]="getStatusClass(order.status)">
+          {{ order.status.replace('_', ' ') | titlecase }}
+        </span>
+      </div>
+
+      <div class="order-body">
+        <div class="restaurant-info">
+          <h3>{{ order.restaurant.name }}</h3>
+          <p>{{ order.items.length }} Items • ₹{{ order.totalPrice }}</p>
+        </div>
+        
+        <div class="items-preview">
+          <span *ngFor="let item of order.items; let last = last">
+            {{ item.quantity }}x {{ item.dishName }}{{ last ? '' : ', ' }}
+          </span>
+        </div>
+      </div>
+
+      <div class="order-footer">
+        <button class="btn-outline" [routerLink]="['/track', order._id]">Track Order</button>
+        <button class="btn-outline">Order Details</button>
+      </div>
+    </div>
+  </div>
+
+  <ng-template #noOrders>
+    <div class="empty-state" *ngIf="!error">
+      <p>You haven't placed any orders yet.</p>
+      <button routerLink="/home" class="btn-primary" style="width: auto; padding: 12px 32px; margin-top: 24px;">Order Now</button>
+    </div>
+  </ng-template>
+</div>

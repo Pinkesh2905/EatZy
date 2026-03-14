@@ -1,0 +1,51 @@
+<div class="health-container">
+  <div class="glass-card header-card">
+    <h1>Your Health <span class="text-primary">Summary</span></h1>
+    <p class="subtitle">Based on your recent organic orders from EatZy.</p>
+  </div>
+
+  <div class="stats-grid">
+    <div class="stat-card glass-card">
+      <span class="icon">🔥</span>
+      <h3>{{ stats.calories | number }}</h3>
+      <p>Calories Consumed</p>
+    </div>
+    <div class="stat-card glass-card">
+      <span class="icon">💪</span>
+      <h3>{{ stats.protein | number }}g</h3>
+      <p>Total Protein</p>
+    </div>
+    <div class="stat-card glass-card">
+      <span class="icon">🍞</span>
+      <h3>{{ stats.carbs | number }}g</h3>
+      <p>Total Carbs</p>
+    </div>
+    <div class="stat-card glass-card">
+      <span class="icon">🥑</span>
+      <h3>{{ stats.fats | number }}g</h3>
+      <p>Total Fats</p>
+    </div>
+  </div>
+
+  @if (subscription) {
+    <div class="glass-card subscription-status">
+      <div class="status-info">
+        <h3>Active Plan: <span class="text-primary">{{ subscription.planName }}</span></h3>
+        <p>Valid until: {{ subscription.endDate | date }}</p>
+        <div class="progress-container">
+          <p>Remaining Meals: {{ subscription.remainingMeals }} / {{ subscription.mealsPerWeek }}</p>
+          <div class="progress-bar">
+            <div class="fill" [style.width.%]="(subscription.remainingMeals / subscription.mealsPerWeek) * 100"></div>
+          </div>
+        </div>
+      </div>
+      <button class="btn-outline">Manage Plan</button>
+    </div>
+  } @else {
+    <div class="glass-card no-sub">
+      <h3>No Active Subscription</h3>
+      <p>Unlock personalized health insights and priority delivery with our meal plans.</p>
+      <button class="btn-primary" routerLink="/subscriptions">View Plans</button>
+    </div>
+  }
+</div>

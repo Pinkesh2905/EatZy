@@ -1,0 +1,41 @@
+<div class="tracking-container">
+  <div class="glass-card tracking-card" *ngIf="order">
+    <div class="tracking-header">
+      <button routerLink="/orders" class="btn-back">← Back</button>
+      <h2>Track Order <span class="text-primary">#{{ order._id.slice(-6).toUpperCase() }}</span></h2>
+      <p class="restaurant-name">{{ order.restaurant.name }}</p>
+    </div>
+
+    <div class="status-timeline">
+      <div class="timeline-step" *ngFor="let step of steps; let i = index" [ngClass]="{'active': isStepCompleted(i)}">
+        <div class="step-icon">{{ step.icon }}</div>
+        <div class="step-content">
+          <p class="step-label">{{ step.label }}</p>
+          <p class="step-status" *ngIf="order.status === step.key">Current Status</p>
+        </div>
+        <div class="step-line" *ngIf="i < steps.length - 1"></div>
+      </div>
+    </div>
+
+    <div class="order-summary-section">
+      <h3>Items</h3>
+      <div class="item-list">
+        <div class="item-row" *ngFor="let item of order.items">
+          <span>{{ item.quantity }}x {{ item.dishName }}</span>
+          <span>₹{{ item.price * item.quantity }}</span>
+        </div>
+      </div>
+      <div class="total-row">
+        <span>Total Amount</span>
+        <span class="text-primary">₹{{ order.totalPrice }}</span>
+      </div>
+    </div>
+
+    <div class="delivery-details">
+      <h3>Delivery Address</h3>
+      <p>{{ order.deliveryAddress }}</p>
+    </div>
+  </div>
+
+  <div *ngIf="loading" class="loader">Fetching live tracking data...</div>
+</div>

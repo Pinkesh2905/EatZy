@@ -1,0 +1,62 @@
+<div class="cart-page-container">
+  <div class="cart-header">
+    <h1>Your <span class="text-primary">Cart</span></h1>
+    <p>{{ cartService.totalItems() }} items in your cart</p>
+  </div>
+
+  <div class="cart-layout" *ngIf="cartService.cartItems().length > 0; else emptyCart">
+    <div class="cart-items-list">
+      <div class="cart-item glass-card" *ngFor="let item of cartService.cartItems()">
+        <div class="item-img" *ngIf="item.image">
+          <img [src]="item.image" [alt]="item.dishName">
+        </div>
+        <div class="item-details">
+          <h3>{{ item.dishName }}</h3>
+          <p class="item-price">₹{{ item.price }}</p>
+        </div>
+        <div class="quantity-controls">
+          <button (click)="updateQty(item._id, item.quantity - 1)">-</button>
+          <span>{{ item.quantity }}</span>
+          <button (click)="updateQty(item._id, item.quantity + 1)">+</button>
+        </div>
+        <div class="item-total">
+          ₹{{ item.price * item.quantity }}
+        </div>
+        <button class="remove-btn" (click)="removeItem(item._id)">✕</button>
+      </div>
+    </div>
+
+    <div class="cart-summary glass-card">
+      <h2>Order Summary</h2>
+      <div class="summary-row">
+        <span>Subtotal</span>
+        <span>₹{{ cartService.totalPrice() }}</span>
+      </div>
+      <div class="summary-row">
+        <span>Delivery Fee</span>
+        <span class="text-free">FREE</span>
+      </div>
+      <hr>
+      <div class="summary-row total">
+        <span>Total</span>
+        <span>₹{{ cartService.totalPrice() }}</span>
+      </div>
+      
+      <p *ngIf="checkoutError" class="checkout-error">{{ checkoutError }}</p>
+
+      <button class="btn-primary" (click)="checkout()" [disabled]="checkoutLoading">
+        {{ checkoutLoading ? 'Processing...' : 'Proceed to Checkout' }}
+      </button>
+      <a routerLink="/home" class="continue-shopping">Continue Shopping</a>
+    </div>
+  </div>
+
+  <ng-template #emptyCart>
+    <div class="empty-state">
+      <div class="empty-icon">🛒</div>
+      <h2>Your cart is empty</h2>
+      <p>Looks like you haven't added anything to your cart yet.</p>
+      <button routerLink="/home" class="btn-primary" style="width: auto; padding: 12px 32px;">Browse Restaurants</button>
+    </div>
+  </ng-template>
+</div>

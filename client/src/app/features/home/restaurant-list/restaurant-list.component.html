@@ -1,0 +1,33 @@
+<div class="home-container">
+  <header class="hero">
+    <h1>Smart Food <span class="text-gradient">Delivery</span></h1>
+    <p>Discover healthy, delicious, and smart meals near you.</p>
+    
+    <div class="search-bar">
+      <input type="text" placeholder="Search for food or restaurants...">
+      <button class="btn-primary" style="width: auto; margin-top: 0; padding: 0 30px;">Search</button>
+    </div>
+  </header>
+
+  <section class="restaurant-section">
+    <div class="section-header">
+      <h2>Top Restaurants</h2>
+      <button class="btn-link">View All</button>
+    </div>
+
+    <div *ngIf="loading" class="loading-grid">
+      <div *ngFor="let i of [1,2,3,4]" class="skeleton-card"></div>
+    </div>
+
+    <div *ngIf="!loading && restaurants.length > 0" class="restaurant-grid">
+      <app-restaurant-card 
+        *ngFor="let res of restaurants" 
+        [restaurant]="res">
+      </app-restaurant-card>
+    </div>
+
+    <div *ngIf="!loading && restaurants.length === 0" class="empty-state">
+      <p>No restaurants found. Stay tuned!</p>
+    </div>
+  </section>
+</div>

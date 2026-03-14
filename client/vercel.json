@@ -1,5 +1,6 @@
 {
   "version": 2,
+  "outputDirectory": "dist/eatzy-client/browser",
   "rewrites": [
     {
       "source": "/(.*)",

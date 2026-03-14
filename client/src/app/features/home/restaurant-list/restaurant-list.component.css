@@ -1,17 +1,35 @@
 .home-container {
-  padding: 0 0 40px 0;
+  padding: 0 0 60px 0;
 }
 
+/* ===========================
+   Hero Section
+   =========================== */
 .hero {
-  padding: 80px 20px;
+  padding: 100px 20px 80px;
   text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 71, 87, 0.05) 0%, transparent 60%);
+  pointer-events: none;
+  z-index: -1;
 }
 
 .hero h1 {
-  font-size: 56px;
+  font-size: clamp(3rem, 6vw, 4.5rem);
   font-weight: 800;
-  margin-bottom: 16px;
-  letter-spacing: -2px;
+  margin-bottom: 20px;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
 .text-gradient {
@@ -19,12 +37,16 @@
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  display: inline-block;
 }
 
 .hero p {
   color: var(--text-muted);
-  font-size: 18px;
+  font-size: clamp(1.1rem, 2vw, 1.25rem);
   margin-bottom: 40px;
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
 .search-bar {
@@ -36,6 +58,13 @@
   padding: 8px;
   border-radius: 16px;
   border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+  transition: var(--transition);
+}
+
+.search-bar:focus-within {
+  border-color: rgba(255, 71, 87, 0.4);
+  box-shadow: 0 0 20px rgba(255, 71, 87, 0.1);
 }
 
 .search-bar input {
@@ -45,10 +74,21 @@
   padding: 12px 20px;
   color: white;
   outline: none;
+  font-size: 1rem;
 }
 
+.search-bar .btn-primary {
+  width: auto;
+  margin-top: 0;
+  padding: 0 32px;
+  border-radius: 12px;
+}
+
+/* ===========================
+   Restaurant Grid Section
+   =========================== */
 .restaurant-section {
-  max-width: 1200px;
+  max-width: var(--container-max);
   margin: 0 auto;
   padding: 20px;
 }
@@ -60,10 +100,9 @@
   margin-bottom: 32px;
 }
 
-.restaurant-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 32px;
+.section-header h2 {
+  font-size: 2rem;
+  font-weight: 700;
 }
 
 .btn-link {
@@ -72,6 +111,27 @@
   border: none;
   font-weight: 600;
   cursor: pointer;
+  font-size: 1rem;
+  transition: var(--transition);
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+  opacity: 0.8;
+}
+
+/* Base grid layout inherits from styles.css .responsive-grid */
+.restaurant-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
+}
+
+/* Loading Skeletons */
+.loading-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 32px;
 }
 
 .skeleton-card {
@@ -85,4 +145,42 @@
   0% { opacity: 0.5; }
   50% { opacity: 0.8; }
   100% { opacity: 0.5; }
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  background: var(--glass-bg);
+  border-radius: var(--border-radius-lg);
+  border: 1px dashed var(--glass-border);
+  color: var(--text-muted);
+}
+
+/* ===========================
+   Mobile Responsiveness
+   =========================== */
+@media screen and (max-width: 768px) {
+  .hero {
+    padding: 60px 20px 40px;
+  }
+  
+  .search-bar {
+    flex-direction: column;
+    padding: 12px;
+    gap: 12px;
+  }
+  
+  .search-bar input {
+    text-align: center;
+    padding: 8px;
+  }
+  
+  .search-bar .btn-primary {
+    width: 100%;
+    padding: 14px;
+  }
+
+  .restaurant-grid {
+    gap: 20px;
+  }
 }

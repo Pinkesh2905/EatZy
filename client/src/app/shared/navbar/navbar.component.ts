@@ -15,6 +15,12 @@ export class NavbarComponent implements OnInit {
   authService = inject(AuthService);
   cartService = inject(CartService);
 
+  isMenuOpen = false;
+
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
   ngOnInit() {
     if (this.authService.isLoggedIn()) {
       this.authService.refreshProfile().subscribe({

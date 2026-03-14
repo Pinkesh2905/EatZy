@@ -4,40 +4,56 @@
       Eat<span class="text-primary">Zy</span>
     </a>
 
-    <div class="nav-links">
-      <a routerLink="/home" routerLinkActive="active">Discover</a>
-      <a routerLink="/chefs" routerLinkActive="active">Home Chefs</a>
-      
-      <!-- Role Based Links -->
-      <ng-container *ngIf="authService.currentUser() as user">
-        <a *ngIf="user.role === 'home_chef'" routerLink="/chef/dashboard" routerLinkActive="active">My Kitchen</a>
-        <a *ngIf="user.role === 'delivery_partner'" routerLink="/delivery/dashboard" routerLinkActive="active">Delivery Station</a>
-        <a *ngIf="user.role === 'admin'" routerLink="/admin/overview" routerLinkActive="active">Admin Panel</a>
-      </ng-container>
-
-      <a routerLink="/subscriptions" routerLinkActive="active">Subscriptions</a>
-      <a routerLink="/health-stats" routerLinkActive="active">Health Stats</a>
+    <!-- Hamburger Icon for Mobile -->
+    <div class="menu-toggle" (click)="toggleMenu()">
+      <span class="bar" [class.open]="isMenuOpen"></span>
+      <span class="bar" [class.open]="isMenuOpen"></span>
+      <span class="bar" [class.open]="isMenuOpen"></span>
     </div>
 
-    <div class="nav-actions">
-      <a routerLink="/cart" class="cart-btn">
-        🛒 Cart
-        <span class="badge" *ngIf="cartService.totalItems() > 0">
-          {{ cartService.totalItems() }}
-        </span>
-      </a>
+    <!-- Navigation Links -->
+    <div class="nav-links" [class.active-mobile]="isMenuOpen">
+      <!-- Close button for mobile menu -->
+      <div class="close-menu" (click)="toggleMenu()">✕</div>
 
-      <div class="user-profile" *ngIf="authService.currentUser() as user; else guest">
-        <div class="reward-points" *ngIf="user.rewardPoints !== undefined" title="Reward Points">
-          💎 {{ user.rewardPoints }}
-        </div>
-        <span class="username">{{ user.name }}</span>
-        <button (click)="logout()" class="logout-btn">Logout</button>
+      <div class="nav-items-container">
+        <a routerLink="/home" routerLinkActive="active" (click)="isMenuOpen = false">Discover</a>
+        <a routerLink="/chefs" routerLinkActive="active" (click)="isMenuOpen = false">Home Chefs</a>
+        
+        <!-- Role Based Links -->
+        <ng-container *ngIf="authService.currentUser() as user">
+          <a *ngIf="user.role === 'home_chef'" routerLink="/chef/dashboard" routerLinkActive="active" (click)="isMenuOpen = false">My Kitchen</a>
+          <a *ngIf="user.role === 'delivery_partner'" routerLink="/delivery/dashboard" routerLinkActive="active" (click)="isMenuOpen = false">Delivery Station</a>
+          <a *ngIf="user.role === 'admin'" routerLink="/admin/overview" routerLinkActive="active" (click)="isMenuOpen = false">Admin Panel</a>
+        </ng-container>
+
+        <a routerLink="/subscriptions" routerLinkActive="active" (click)="isMenuOpen = false">Subscriptions</a>
+        <a routerLink="/health-stats" routerLinkActive="active" (click)="isMenuOpen = false">Health Stats</a>
       </div>
 
-      <ng-template #guest>
-        <button routerLink="/auth/login" class="btn-primary" style="width: auto; margin:0; padding: 8px 16px;">Login</button>
-      </ng-template>
+      <div class="nav-actions">
+        <a routerLink="/cart" class="cart-btn" (click)="isMenuOpen = false">
+          🛒 Cart
+          <span class="badge" *ngIf="cartService.totalItems() > 0">
+            {{ cartService.totalItems() }}
+          </span>
+        </a>
+
+        <div class="user-profile" *ngIf="authService.currentUser() as user; else guest">
+          <div class="reward-points" *ngIf="user.rewardPoints !== undefined" title="Reward Points">
+            💎 {{ user.rewardPoints }}
+          </div>
+          <span class="username">{{ user.name }}</span>
+          <button (click)="logout(); isMenuOpen = false" class="logout-btn">Logout</button>
+        </div>
+
+        <ng-template #guest>
+          <button routerLink="/auth/login" class="btn-primary" style="width: auto; margin:0; padding: 8px 16px;" (click)="isMenuOpen = false">Login</button>
+        </ng-template>
+      </div>
     </div>
   </div>
+
+  <!-- Mobile Overlay -->
+  <div class="mobile-overlay" *ngIf="isMenuOpen" (click)="toggleMenu()"></div>
 </nav>
